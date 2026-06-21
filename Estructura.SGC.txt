@@ -1,0 +1,30 @@
+caballeriza-backend/
+├── src/main/java/com/caballeriza/
+│   ├── config/          SecurityConfig, JwtConfig, OpenApiConfig, CorsConfig
+│   ├── controller/      CaballoController, EmpleadoController, ReservaController...
+│   ├── dto/             CaballoDTO, request/, response/
+│   ├── entity/          Caballo, Empleado, Reserva, RegistroMedico...
+│   ├── repository/      interfaces JpaRepository<T, Long>
+│   ├── service/         + impl/ (interfaces y lógica de negocio)
+│   ├── security/        JwtUtil, JwtFilter, UserDetailsServiceImpl
+│   ├── exception/       GlobalExceptionHandler, ResourceNotFoundException
+│   └── CaballerizaApplication.java
+├── src/main/resources/
+│   ├── application.yml
+│   └── db/migration/    (si usan Flyway: V1__init.sql, V2__seed.sql)
+├── src/test/java/...    (tests JUnit/Mockito por servicio)
+├── Dockerfile
+└── pom.xml
+
+caballeriza-frontend/
+├── src/
+│   ├── api/             axiosClient.js, caballoApi.js, authApi.js...
+│   ├── components/      ui/ (Button, Modal, Table), layout/ (Navbar, Sidebar)
+│   ├── pages/           Caballos/, Personal/, Calendario/, Alimentacion/, Login/
+│   ├── context/         AuthContext.jsx (token, rol, login/logout)
+│   ├── routes/          PrivateRoute.jsx, RoleRoute.jsx
+│   ├── hooks/           useAuth.js, usePagination.js
+│   └── App.jsx
+├── src/tests/           tests básicos con Vitest + Testing Library
+├── Dockerfile
+└── package.json
