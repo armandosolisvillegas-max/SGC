@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth';
 import { reservaApi } from '../../api/apiModules';
 import { caballoApi } from '../../api/caballoApi';
@@ -8,6 +9,7 @@ import Modal from '../../components/ui/Modal';
 import Button from '../../components/ui/Button';
 
 export const Calendario = () => {
+  const navigate = useNavigate();
   const { user, isRole } = useAuth();
   
   const [bookings, setBookings] = useState([]);
@@ -196,9 +198,33 @@ export const Calendario = () => {
   return (
     <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-        <div>
-          <h1>Calendario y Reservas</h1>
-          <p>Controla la agenda de paseos guiados, citas veterinarias y entrenamientos.</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <button
+            onClick={() => navigate('/dashboard')}
+            title="Volver al Inicio"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '38px',
+              height: '38px',
+              borderRadius: 'var(--radius-md)',
+              backgroundColor: 'rgba(255,255,255,0.06)',
+              border: '1px solid var(--border-color)',
+              color: 'var(--text-secondary)',
+              cursor: 'pointer',
+              transition: 'var(--transition-normal)',
+              flexShrink: 0
+            }}
+            onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'rgba(245,158,11,0.15)'; e.currentTarget.style.color = 'var(--accent-gold)'; e.currentTarget.style.borderColor = 'var(--accent-gold)'; }}
+            onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.borderColor = 'var(--border-color)'; }}
+          >
+            <i className="fa-solid fa-house" style={{ fontSize: '0.9rem' }}></i>
+          </button>
+          <div>
+            <h1>Calendario y Reservas</h1>
+            <p>Controla la agenda de paseos guiados, citas veterinarias y entrenamientos.</p>
+          </div>
         </div>
         <Button onClick={openAddModal} icon="fa-regular fa-calendar-plus">
           Crear Reserva
