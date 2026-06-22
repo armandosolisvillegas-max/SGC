@@ -1,8 +1,11 @@
 package com.caballeriza.service.impl;
 import com.caballeriza.dto.EmpleadoDTO;
+import com.caballeriza.dto.TurnoDTO;
 import com.caballeriza.entity.Empleado;
+import com.caballeriza.entity.Turno;
 import com.caballeriza.exception.ResourceNotFoundException;
 import com.caballeriza.repository.EmpleadoRepository;
+import com.caballeriza.repository.TurnoRepository;
 import com.caballeriza.service.EmpleadoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -13,6 +16,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class EmpleadoServiceImpl implements EmpleadoService {
     private final EmpleadoRepository repository;
+    private final TurnoRepository turnoRepository;
 
     private EmpleadoDTO mapToDTO(Empleado e) {
         EmpleadoDTO dto = new EmpleadoDTO();
@@ -33,4 +37,26 @@ public class EmpleadoServiceImpl implements EmpleadoService {
         return mapToDTO(repository.save(e));
     }
     @Override public void delete(Long id) { repository.deleteById(id); }
+
+    @Override
+    public List<TurnoDTO> getTurnosByEmpleado(Long empleadoId) {
+        return turnoRepository.findAll().stream()
+                .filter(t -> t.getEmpleado().getId().equals(empleadoId))
+                .map(t -> new TurnoDTO(t.getId(), t.getFecha(), t.getHoraInicio(), t.getHoraFin(), t.getTareaAsignada(), empleadoId))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public TurnoDTO addTurno(Long empleadoId, TurnoDTO dto) {
+        Empleado e = repository.findById(empleadoId).orElseThrow(() -> new ResourceNotFoundException("Empleado no encontrado"));
+        Turno turno = Turno.builder()
+                .fecha(dto.getFecha())
+                .horaInicio(dto.getHoraInicio())
+                .horaFin(dto.getHoraFin())
+                .tareaAsignada(dto.getTareaAsignada())
+                .empleado(e)
+                .build();
+        Turno saved = turnoRepository.save(turno);
+        return new TurnoDTO(saved.getId(), saved.getFecha(), saved.getHoraInicio(), saved.getHoraFin(), saved.getTareaAsignada(), empleadoId);
+    }
 }
