@@ -15,7 +15,7 @@ export const Personal = () => {
   // Employee Form CRUD
   const [isEmpModalOpen, setIsEmpModalOpen] = useState(false);
   const [editingEmp, setEditingEmp] = useState(null);
-  const [empForm, setEmpForm] = useState({ nombre: '', rol: 'cuidador', contacto: '' });
+  const [empForm, setEmpForm] = useState({ nombre: '', rol: 'ROLE_CUIDADOR', contacto: '' });
   const [empErrors, setEmpErrors] = useState({});
 
   // Shifts Form
@@ -87,7 +87,7 @@ export const Personal = () => {
 
   const openAddEmpModal = () => {
     setEditingEmp(null);
-    setEmpForm({ nombre: '', rol: 'cuidador', contacto: '' });
+    setEmpForm({ nombre: '', rol: 'ROLE_CUIDADOR', contacto: '' });
     setEmpErrors({});
     setIsEmpModalOpen(true);
   };
@@ -143,7 +143,7 @@ export const Personal = () => {
       <td>{emp.nombre}</td>
       <td>
         <span className={`badge ${getRolBadgeClass(emp.rol)}`}>
-          {emp.rol}
+          {getRolLabel(emp.rol)}
         </span>
       </td>
       <td>{emp.contacto}</td>
@@ -259,10 +259,10 @@ export const Personal = () => {
               onChange={(e) => setEmpForm(prev => ({ ...prev, rol: e.target.value }))}
               style={{ backgroundColor: 'var(--bg-primary)', color: 'white' }}
             >
-              <option value="veterinario">Veterinario</option>
-              <option value="potrador">Potrador (Entrenador)</option>
-              <option value="cuidador">Cuidador de Establos</option>
-              <option value="administrador">Administrador</option>
+              <option value="ROLE_VETERINARIO">Veterinario</option>
+              <option value="ROLE_POTRADOR">Potrador (Entrenador)</option>
+              <option value="ROLE_CUIDADOR">Cuidador de Establos</option>
+              <option value="ROLE_ADMIN">Administrador</option>
             </select>
           </div>
 
@@ -386,10 +386,21 @@ export const Personal = () => {
 
   function getRolBadgeClass(rol) {
     switch (rol) {
-      case 'veterinario': return 'badge-info';
-      case 'potrador': return 'badge-warning';
-      case 'cuidador': return 'badge-success';
+      case 'ROLE_VETERINARIO': return 'badge-info';
+      case 'ROLE_POTRADOR': return 'badge-warning';
+      case 'ROLE_CUIDADOR': return 'badge-success';
+      case 'ROLE_ADMIN': return 'badge-primary';
       default: return 'badge-primary';
+    }
+  }
+
+  function getRolLabel(rol) {
+    switch (rol) {
+      case 'ROLE_VETERINARIO': return 'Veterinario';
+      case 'ROLE_POTRADOR': return 'Potrador';
+      case 'ROLE_CUIDADOR': return 'Cuidador';
+      case 'ROLE_ADMIN': return 'Administrador';
+      default: return rol;
     }
   }
 };
