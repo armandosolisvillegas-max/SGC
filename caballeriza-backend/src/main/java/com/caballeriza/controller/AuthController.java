@@ -31,7 +31,7 @@ public class AuthController {
     @PostMapping("/registro")
     public ResponseEntity<?> registrar(@Valid @RequestBody RegistroRequest request) {
         if (usuarioRepository.findByEmail(request.getEmail()).isPresent()) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("El email ya estÃ¡ registrado.");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("El email ya está registrado.");
         }
 
         Usuario usuario = Usuario.builder()
@@ -42,7 +42,18 @@ public class AuthController {
                 .build();
         
         usuarioRepository.save(usuario);
-        return ResponseEntity.status(HttpStatus.CREATED).body("Usuario registrado exitosamente.");
+
+        final UserDetails userDetails = userDetailsService.loadUserByUsername(usuario.getEmail());
+        final String jwt = jwtUtil.generateToken(userDetails);
+
+        AuthResponse.UserResponse userResponse = new AuthResponse.UserResponse(
+                usuario.getId(),
+                usuario.getNombre(),
+                usuario.getEmail(),
+                usuario.getRol().name()
+        );
+        
+        return ResponseEntity.status(HttpStatus.CREATED).body(new AuthResponse(jwt, userResponse));
     }
 
     @PostMapping("/login")
@@ -52,7 +63,17 @@ public class AuthController {
         );
         final UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
         final String jwt = jwtUtil.generateToken(userDetails);
+
+        Usuario usuario = usuarioRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        AuthResponse.UserResponse userResponse = new AuthResponse.UserResponse(
+                usuario.getId(),
+                usuario.getNombre(),
+                usuario.getEmail(),
+                usuario.getRol().name()
+        );
         
-        return ResponseEntity.ok(new AuthResponse(jwt));
+        return ResponseEntity.ok(new AuthResponse(jwt, userResponse));
     }
 }
