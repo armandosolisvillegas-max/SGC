@@ -39,7 +39,7 @@ public class InventarioServiceImpl implements InventarioService {
     }
 
     @Override public InsumoDTO update(Long id, InsumoDTO dto) {
-        Insumo i = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Insumo no encontrado"));
+        Insumo i = repository.findById(java.util.Objects.requireNonNull(id)).orElseThrow(() -> new ResourceNotFoundException("Insumo no encontrado"));
         i.setNombre(dto.getNombre()); i.setTipo(dto.getTipo());
         i.setStockActual(dto.getStockActual()); i.setStockMinimo(dto.getStockMinimo());
         return mapToDTO(repository.save(i));

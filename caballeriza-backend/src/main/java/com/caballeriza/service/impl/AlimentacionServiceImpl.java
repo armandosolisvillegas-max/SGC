@@ -34,7 +34,7 @@ public class AlimentacionServiceImpl implements AlimentacionService {
     }
 
     @Override public PlanAlimentacionDTO createPlan(Long caballoId, PlanAlimentacionDTO dto) {
-        Caballo c = caballoRepository.findById(caballoId).orElseThrow(() -> new ResourceNotFoundException("Caballo no encontrado"));
+        Caballo c = caballoRepository.findById(java.util.Objects.requireNonNull(caballoId)).orElseThrow(() -> new ResourceNotFoundException("Caballo no encontrado"));
         PlanAlimentacion p = new PlanAlimentacion();
         p.setDescripcion(dto.getDescripcion()); p.setFrecuencia(dto.getFrecuencia()); p.setCaballo(c);
         p = planRepository.save(p);
@@ -43,7 +43,7 @@ public class AlimentacionServiceImpl implements AlimentacionService {
     }
 
     @Override public RegistroSuministroDTO createSuministro(Long planId, RegistroSuministroDTO dto) {
-        PlanAlimentacion p = planRepository.findById(planId).orElseThrow(() -> new ResourceNotFoundException("Plan no encontrado"));
+        PlanAlimentacion p = planRepository.findById(java.util.Objects.requireNonNull(planId)).orElseThrow(() -> new ResourceNotFoundException("Plan no encontrado"));
         RegistroSuministro s = new RegistroSuministro();
         s.setFecha(dto.getFecha() != null ? dto.getFecha() : LocalDateTime.now());
         s.setTipo(dto.getTipo()); s.setCantidad(dto.getCantidad()); s.setPlanAlimentacion(p);

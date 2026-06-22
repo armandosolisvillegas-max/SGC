@@ -71,8 +71,8 @@ public class ReservaServiceImpl implements ReservaService {
             }
         }
 
-        Caballo caballo = caballoRepository.findById(dto.getCaballoId()).orElseThrow(() -> new ResourceNotFoundException("Caballo no encontrado"));
-        Usuario cliente = usuarioRepository.findById(dto.getClienteId()).orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado"));
+        Caballo caballo = caballoRepository.findById(java.util.Objects.requireNonNull(dto.getCaballoId())).orElseThrow(() -> new ResourceNotFoundException("Caballo no encontrado"));
+        Usuario cliente = usuarioRepository.findById(java.util.Objects.requireNonNull(dto.getClienteId())).orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado"));
 
         Reserva e = new Reserva();
         e.setTipo(dto.getTipo()); e.setFecha(dto.getFecha()); e.setHoraInicio(dto.getHoraInicio());
@@ -84,7 +84,7 @@ public class ReservaServiceImpl implements ReservaService {
     }
 
     @Override public ReservaDTO update(Long id, ReservaDTO dto) {
-        Reserva e = reservaRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Reserva no encontrada"));
+        Reserva e = reservaRepository.findById(java.util.Objects.requireNonNull(id)).orElseThrow(() -> new ResourceNotFoundException("Reserva no encontrada"));
 
         if ("paseo".equalsIgnoreCase(dto.getTipo())) {
             if (dto.getCupoActual() != null && dto.getCupoMaximo() != null && dto.getCupoActual() >= dto.getCupoMaximo()) {
@@ -114,12 +114,12 @@ public class ReservaServiceImpl implements ReservaService {
         e.setCupoMaximo(dto.getCupoMaximo());
         
         if (dto.getCaballoId() != null) {
-            Caballo caballo = caballoRepository.findById(dto.getCaballoId())
+            Caballo caballo = caballoRepository.findById(java.util.Objects.requireNonNull(dto.getCaballoId()))
                 .orElseThrow(() -> new ResourceNotFoundException("Caballo no encontrado"));
             e.setCaballo(caballo);
         }
         if (dto.getClienteId() != null) {
-            Usuario cliente = usuarioRepository.findById(dto.getClienteId())
+            Usuario cliente = usuarioRepository.findById(java.util.Objects.requireNonNull(dto.getClienteId()))
                 .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado"));
             e.setCliente(cliente);
         }
@@ -127,10 +127,10 @@ public class ReservaServiceImpl implements ReservaService {
         return mapToDTO(reservaRepository.save(e));
     }
 
-    @Override public void delete(Long id) { reservaRepository.deleteById(id); }
+    @Override public void delete(Long id) { reservaRepository.deleteById(java.util.Objects.requireNonNull(id)); }
 
     @Override public void cancelar(Long id) {
-        Reserva e = reservaRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Reserva no encontrada"));
+        Reserva e = reservaRepository.findById(java.util.Objects.requireNonNull(id)).orElseThrow(() -> new ResourceNotFoundException("Reserva no encontrada"));
         e.setEstado("CANCELADA");
         reservaRepository.save(e);
     }

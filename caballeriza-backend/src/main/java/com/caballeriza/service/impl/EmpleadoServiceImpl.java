@@ -32,11 +32,11 @@ public class EmpleadoServiceImpl implements EmpleadoService {
         return mapToDTO(repository.save(e));
     }
     @Override public EmpleadoDTO update(Long id, EmpleadoDTO dto) {
-        Empleado e = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Empleado no encontrado"));
+        Empleado e = repository.findById(java.util.Objects.requireNonNull(id)).orElseThrow(() -> new ResourceNotFoundException("Empleado no encontrado"));
         e.setNombre(dto.getNombre()); e.setRol(dto.getRol()); e.setContacto(dto.getContacto());
         return mapToDTO(repository.save(e));
     }
-    @Override public void delete(Long id) { repository.deleteById(id); }
+    @Override public void delete(Long id) { repository.deleteById(java.util.Objects.requireNonNull(id)); }
 
     @Override
     public List<TurnoDTO> getTurnosByEmpleado(Long empleadoId) {
@@ -48,7 +48,7 @@ public class EmpleadoServiceImpl implements EmpleadoService {
 
     @Override
     public TurnoDTO addTurno(Long empleadoId, TurnoDTO dto) {
-        Empleado e = repository.findById(empleadoId).orElseThrow(() -> new ResourceNotFoundException("Empleado no encontrado"));
+        Empleado e = repository.findById(java.util.Objects.requireNonNull(empleadoId)).orElseThrow(() -> new ResourceNotFoundException("Empleado no encontrado"));
         Turno turno = Turno.builder()
                 .fecha(dto.getFecha())
                 .horaInicio(dto.getHoraInicio())
@@ -56,7 +56,7 @@ public class EmpleadoServiceImpl implements EmpleadoService {
                 .tareaAsignada(dto.getTareaAsignada())
                 .empleado(e)
                 .build();
-        Turno saved = turnoRepository.save(turno);
+        Turno saved = turnoRepository.save(java.util.Objects.requireNonNull(turno));
         return new TurnoDTO(saved.getId(), saved.getFecha(), saved.getHoraInicio(), saved.getHoraFin(), saved.getTareaAsignada(), empleadoId);
     }
 }

@@ -27,7 +27,7 @@ public class AlertaServiceImpl implements AlertaService {
     }
 
     @Override public void marcarLeida(Long id) {
-        Alerta a = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Alerta no encontrada"));
+        Alerta a = repository.findById(java.util.Objects.requireNonNull(id)).orElseThrow(() -> new ResourceNotFoundException("Alerta no encontrada"));
         a.setLeida(true);
         repository.save(a);
     }

@@ -32,12 +32,12 @@ public class RegistroMedicoServiceImpl implements RegistroMedicoService {
 
     @Override
     public RegistroMedicoDTO save(Long caballoId, RegistroMedicoRequest request) {
-        Caballo caballo = caballoRepository.findById(caballoId)
+        Caballo caballo = caballoRepository.findById(java.util.Objects.requireNonNull(caballoId))
                 .orElseThrow(() -> new RuntimeException("Caballo no encontrado con id: " + caballoId));
 
         Empleado responsable;
         if (request.getResponsableId() != null && request.getResponsableId() != 99L) {
-            responsable = empleadoRepository.findById(request.getResponsableId())
+            responsable = empleadoRepository.findById(java.util.Objects.requireNonNull(request.getResponsableId()))
                     .orElseThrow(() -> new RuntimeException("Empleado no encontrado con id: " + request.getResponsableId()));
         } else {
             // Find by name or create a new one
@@ -48,7 +48,7 @@ public class RegistroMedicoServiceImpl implements RegistroMedicoService {
                                 .rol(Rol.ROLE_VETERINARIO)
                                 .contacto("Sin contacto")
                                 .build();
-                        return empleadoRepository.save(newEmp);
+                        return empleadoRepository.save(java.util.Objects.requireNonNull(newEmp));
                     });
         }
 
@@ -60,7 +60,7 @@ public class RegistroMedicoServiceImpl implements RegistroMedicoService {
                 .caballo(caballo)
                 .build();
 
-        return toDTO(repository.save(registro));
+        return toDTO(repository.save(java.util.Objects.requireNonNull(registro)));
     }
 
     private RegistroMedicoDTO toDTO(RegistroMedico r) {

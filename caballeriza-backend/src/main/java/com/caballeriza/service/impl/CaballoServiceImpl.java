@@ -34,19 +34,19 @@ public class CaballoServiceImpl implements CaballoService {
         return repository.findAll().stream().map(this::mapToDTO).collect(Collectors.toList());
     }
     @Override public CaballoDTO getById(Long id) {
-        return mapToDTO(repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Caballo no encontrado")));
+        return mapToDTO(repository.findById(java.util.Objects.requireNonNull(id)).orElseThrow(() -> new ResourceNotFoundException("Caballo no encontrado")));
     }
     @Override public CaballoDTO create(CaballoDTO dto) {
-        return mapToDTO(repository.save(mapToEntity(dto)));
+        return mapToDTO(repository.save(java.util.Objects.requireNonNull(mapToEntity(dto))));
     }
     @Override public CaballoDTO update(Long id, CaballoDTO dto) {
-        Caballo e = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Caballo no encontrado"));
+        Caballo e = repository.findById(java.util.Objects.requireNonNull(id)).orElseThrow(() -> new ResourceNotFoundException("Caballo no encontrado"));
         e.setNombre(dto.getNombre()); e.setIdentificador(dto.getIdentificador());
         e.setEdad(dto.getEdad()); e.setRaza(dto.getRaza()); e.setSexo(dto.getSexo());
         e.setPeso(dto.getPeso()); e.setFotoUrl(dto.getFotoUrl());
         return mapToDTO(repository.save(e));
     }
     @Override public void delete(Long id) {
-        repository.deleteById(id);
+        repository.deleteById(java.util.Objects.requireNonNull(id));
     }
 }
