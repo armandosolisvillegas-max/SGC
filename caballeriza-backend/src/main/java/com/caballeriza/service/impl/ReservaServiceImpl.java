@@ -32,19 +32,47 @@ public class ReservaServiceImpl implements ReservaService {
     }
 
     @Override public List<ReservaDTO> getAll(String tipo, String fecha, int page) {
-        // En una app real, aquÃ­ irÃ­a PageRequest, pero por brevedad traemos todos y filtramos
-        return reservaRepository.findAll().stream().map(this::mapToDTO).collect(Collectors.toList());
+        return reservaRepository.findAll().stream()
+            .filter(r -> {
+                if (tipo != null && !tipo.trim().isEmpty()) {
+                    return r.getTipo().equalsIgnoreCase(tipo.trim());
+                }
+                return true;
+            })
+            .filter(r -> {
+                if (fecha != null && !fecha.trim().isEmpty()) {
+                    try {
+                        java.time.LocalDate parsedDate = java.time.LocalDate.parse(fecha.trim());
+                        return r.getFecha().equals(parsedDate);
+                    } catch (Exception e) {
+                        return false;
+                    }
+                }
+                return true;
+            })
+            .map(this::mapToDTO)
+            .collect(Collectors.toList());
     }
 
     @Override public ReservaDTO create(ReservaDTO dto) {
-        Caballo caballo = caballoRepository.findById(dto.getCaballoId()).orElseThrow(() -> new ResourceNotFoundException("Caballo no encontrado"));
-        Usuario cliente = usuarioRepository.findById(dto.getClienteId()).orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado"));
-
         if ("paseo".equalsIgnoreCase(dto.getTipo())) {
             if (dto.getCupoActual() != null && dto.getCupoMaximo() != null && dto.getCupoActual() >= dto.getCupoMaximo()) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "Cupo mÃ¡ximo alcanzado para el paseo.");
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "El cupo para este paseo está lleno");
+            }
+            if (dto.getCaballoId() != null && dto.getFecha() != null && dto.getHoraInicio() != null) {
+                List<Reserva> activeBookings = reservaRepository.findByCaballoIdAndFechaAndHoraInicioAndEstadoNot(
+                    dto.getCaballoId(), dto.getFecha(), dto.getHoraInicio(), "CANCELADA"
+                );
+                int totalBooked = activeBookings.stream().mapToInt(r -> r.getCupoActual() != null ? r.getCupoActual() : 1).sum();
+                int maxSlots = dto.getCupoMaximo() != null ? dto.getCupoMaximo() : 5;
+                if (totalBooked >= maxSlots) {
+                    throw new ResponseStatusException(HttpStatus.CONFLICT, "El cupo para este paseo está lleno");
+                }
             }
         }
+
+        Caballo caballo = caballoRepository.findById(dto.getCaballoId()).orElseThrow(() -> new ResourceNotFoundException("Caballo no encontrado"));
+        Usuario cliente = usuarioRepository.findById(dto.getClienteId()).orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado"));
 
         Reserva e = new Reserva();
         e.setTipo(dto.getTipo()); e.setFecha(dto.getFecha()); e.setHoraInicio(dto.getHoraInicio());
@@ -57,8 +85,45 @@ public class ReservaServiceImpl implements ReservaService {
 
     @Override public ReservaDTO update(Long id, ReservaDTO dto) {
         Reserva e = reservaRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Reserva no encontrada"));
-        e.setTipo(dto.getTipo()); e.setFecha(dto.getFecha()); e.setHoraInicio(dto.getHoraInicio());
-        e.setHoraFin(dto.getHoraFin()); e.setCupoMaximo(dto.getCupoMaximo());
+
+        if ("paseo".equalsIgnoreCase(dto.getTipo())) {
+            if (dto.getCupoActual() != null && dto.getCupoMaximo() != null && dto.getCupoActual() >= dto.getCupoMaximo()) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "El cupo para este paseo está lleno");
+            }
+            Long caballoId = dto.getCaballoId() != null ? dto.getCaballoId() : e.getCaballo().getId();
+            java.time.LocalDate fecha = dto.getFecha() != null ? dto.getFecha() : e.getFecha();
+            java.time.LocalTime horaInicio = dto.getHoraInicio() != null ? dto.getHoraInicio() : e.getHoraInicio();
+            int maxSlots = dto.getCupoMaximo() != null ? dto.getCupoMaximo() : (e.getCupoMaximo() != null ? e.getCupoMaximo() : 5);
+
+            List<Reserva> activeBookings = reservaRepository.findByCaballoIdAndFechaAndHoraInicioAndEstadoNot(
+                caballoId, fecha, horaInicio, "CANCELADA"
+            );
+            int totalBooked = activeBookings.stream()
+                .filter(r -> !r.getId().equals(id))
+                .mapToInt(r -> r.getCupoActual() != null ? r.getCupoActual() : 1)
+                .sum();
+            if (totalBooked >= maxSlots) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "El cupo para este paseo está lleno");
+            }
+        }
+
+        e.setTipo(dto.getTipo());
+        e.setFecha(dto.getFecha());
+        e.setHoraInicio(dto.getHoraInicio());
+        e.setHoraFin(dto.getHoraFin());
+        e.setCupoMaximo(dto.getCupoMaximo());
+        
+        if (dto.getCaballoId() != null) {
+            Caballo caballo = caballoRepository.findById(dto.getCaballoId())
+                .orElseThrow(() -> new ResourceNotFoundException("Caballo no encontrado"));
+            e.setCaballo(caballo);
+        }
+        if (dto.getClienteId() != null) {
+            Usuario cliente = usuarioRepository.findById(dto.getClienteId())
+                .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado"));
+            e.setCliente(cliente);
+        }
+
         return mapToDTO(reservaRepository.save(e));
     }
 

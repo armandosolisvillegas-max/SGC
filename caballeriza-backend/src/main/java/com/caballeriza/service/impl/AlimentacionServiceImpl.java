@@ -49,6 +49,29 @@ public class AlimentacionServiceImpl implements AlimentacionService {
         s.setTipo(dto.getTipo()); s.setCantidad(dto.getCantidad()); s.setPlanAlimentacion(p);
         s = suministroRepository.save(s);
         dto.setId(s.getId()); dto.setPlanId(p.getId()); dto.setFecha(s.getFecha());
+        if (p.getCaballo() != null) {
+            dto.setCaballoNombre(p.getCaballo().getNombre());
+        } else {
+            dto.setCaballoNombre("Desconocido");
+        }
         return dto;
+    }
+
+    @Override public List<RegistroSuministroDTO> getAllSuministros() {
+        return suministroRepository.findAll().stream()
+                .map(s -> {
+                    RegistroSuministroDTO dto = new RegistroSuministroDTO();
+                    dto.setId(s.getId());
+                    dto.setFecha(s.getFecha());
+                    dto.setTipo(s.getTipo());
+                    dto.setCantidad(s.getCantidad());
+                    dto.setPlanId(s.getPlanAlimentacion().getId());
+                    if (s.getPlanAlimentacion().getCaballo() != null) {
+                        dto.setCaballoNombre(s.getPlanAlimentacion().getCaballo().getNombre());
+                    } else {
+                        dto.setCaballoNombre("Desconocido");
+                    }
+                    return dto;
+                }).collect(Collectors.toList());
     }
 }

@@ -1,4 +1,5 @@
 package com.caballeriza.dto.response;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -17,3 +18,4 @@ public class AuthResponse {
         private String rol;
     }
 }
+

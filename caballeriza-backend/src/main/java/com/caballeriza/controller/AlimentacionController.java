@@ -28,4 +28,9 @@ public class AlimentacionController {
     public RegistroSuministroDTO createSuministro(@PathVariable Long id, @RequestBody RegistroSuministroDTO dto) {
         return service.createSuministro(id, dto);
     }
+
+    @GetMapping("/api/planes/suministros")
+    public List<RegistroSuministroDTO> getSuministros() {
+        return service.getAllSuministros();
+    }
 }

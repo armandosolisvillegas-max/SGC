@@ -38,7 +38,8 @@ export const Alimentacion = () => {
       // Enrich horse list with feeding plan
       const enrichedHorses = await Promise.all(
         horsesList.map(async (horse) => {
-          const plan = await alimentacionApi.getPlanByCaballo(horse.id);
+          const planResult = await alimentacionApi.getPlanByCaballo(horse.id);
+          const plan = Array.isArray(planResult) ? planResult[0] : planResult;
           const insumo = plan ? suppliesList.find(i => i.id === Number(plan.insumoId)) : null;
           return {
             ...horse,

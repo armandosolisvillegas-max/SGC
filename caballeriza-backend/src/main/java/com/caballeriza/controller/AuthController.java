@@ -60,7 +60,7 @@ public class AuthController {
         );
         final UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
         final String jwt = jwtUtil.generateToken(userDetails);
-        
+
         Usuario usuario = usuarioRepository.findByEmail(request.getEmail()).orElseThrow();
         AuthResponse.UserDto userDto = new AuthResponse.UserDto(
             usuario.getId(), usuario.getNombre(), usuario.getEmail(), usuario.getRol().name()

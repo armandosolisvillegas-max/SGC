@@ -19,9 +19,13 @@ export const Calendario = () => {
   // Filters
   const [filterTipo, setFilterTipo] = useState('');
   const [filterFecha, setFilterFecha] = useState('');
+  const [searchTipo, setSearchTipo] = useState('');
+  const [searchFecha, setSearchFecha] = useState('');
 
   // Booking Form Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const [bookingForm, setBookingForm] = useState({
     tipo: 'paseo', fecha: '', horaInicio: '08:00', horaFin: '09:30', caballoId: '', cupoMaximo: '5'
   });
@@ -82,17 +86,25 @@ export const Calendario = () => {
     if (!validate()) return;
 
     try {
-      await reservaApi.create({
-        ...bookingForm,
-        clienteId: user.id
-      });
+      if (isEditing) {
+        await reservaApi.update(editingId, {
+          ...bookingForm,
+          clienteId: user.id
+        });
+      } else {
+        await reservaApi.create({
+          ...bookingForm,
+          clienteId: user.id
+        });
+      }
       setIsModalOpen(false);
       loadData();
     } catch (err) {
-      if (err.message && err.message.includes("EXCESO_CUPO")) {
+      const msg = err.response?.data?.message || err.response?.data || err.message || "";
+      if (msg.includes("EXCESO_CUPO") || msg.includes("cupo") || msg.includes("Cupo")) {
         setApiError("Capacidad Agotada: El caballo seleccionado ya tiene una reserva en esta fecha y hora o supera el cupo máximo.");
       } else {
-        setApiError(err.message || "Error al registrar la reserva.");
+        setApiError(msg || "Error al registrar la reserva.");
       }
     }
   };
@@ -130,6 +142,24 @@ export const Calendario = () => {
     });
     setFormErrors({});
     setApiError('');
+    setIsEditing(false);
+    setEditingId(null);
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (booking) => {
+    setBookingForm({
+      tipo: booking.tipo,
+      fecha: booking.fecha,
+      horaInicio: booking.horaInicio,
+      horaFin: booking.horaFin,
+      caballoId: booking.caballoId,
+      cupoMaximo: booking.cupoMaximo || '5'
+    });
+    setFormErrors({});
+    setApiError('');
+    setIsEditing(true);
+    setEditingId(booking.id);
     setIsModalOpen(true);
   };
 
@@ -163,14 +193,24 @@ export const Calendario = () => {
       <td>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           {booking.estado !== 'CANCELADA' && (
-            <Button
-              variant="secondary"
-              onClick={() => handleCancelBooking(booking.id)}
-              style={{ padding: '0.4rem 0.6rem', fontSize: '0.8rem' }}
-              title="Cancelar Reserva"
-            >
-              Cancelar
-            </Button>
+            <>
+              <Button
+                variant="secondary"
+                onClick={() => openEditModal(booking)}
+                style={{ padding: '0.4rem 0.6rem', fontSize: '0.8rem' }}
+                title="Editar Reserva"
+              >
+                Editar
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => handleCancelBooking(booking.id)}
+                style={{ padding: '0.4rem 0.6rem', fontSize: '0.8rem' }}
+                title="Cancelar Reserva"
+              >
+                Cancelar
+              </Button>
+            </>
           )}
           {isRole.isAdmin() && (
             <Button
@@ -238,8 +278,8 @@ export const Calendario = () => {
             <label className="form-label">Filtrar por tipo</label>
             <select
               className="form-control"
-              value={filterTipo}
-              onChange={(e) => setFilterTipo(e.target.value)}
+              value={searchTipo}
+              onChange={(e) => setSearchTipo(e.target.value)}
               style={{ backgroundColor: 'var(--bg-primary)', color: 'white' }}
             >
               <option value="">Todos los eventos</option>
@@ -254,23 +294,33 @@ export const Calendario = () => {
             <input
               type="date"
               className="form-control"
-              value={filterFecha}
-              onChange={(e) => setFilterFecha(e.target.value)}
+              value={searchFecha}
+              onChange={(e) => setSearchFecha(e.target.value)}
             />
           </div>
-          {(filterTipo || filterFecha) && (
-            <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '0.5rem' }}>
+            <Button
+              onClick={() => {
+                setFilterTipo(searchTipo);
+                setFilterFecha(searchFecha);
+              }}
+            >
+              Buscar
+            </Button>
+            {(filterTipo || filterFecha || searchTipo || searchFecha) && (
               <Button
                 variant="secondary"
                 onClick={() => {
+                  setSearchTipo('');
+                  setSearchFecha('');
                   setFilterTipo('');
                   setFilterFecha('');
                 }}
               >
                 Limpiar Filtros
               </Button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
@@ -283,7 +333,7 @@ export const Calendario = () => {
       />
 
       {/* Create Booking Modal */}
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Registrar Nueva Reserva">
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={isEditing ? "Editar Reserva" : "Registrar Nueva Reserva"}>
         {apiError && (
           <div style={{
             backgroundColor: 'rgba(239, 68, 68, 0.15)',

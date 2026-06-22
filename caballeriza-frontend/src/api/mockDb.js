@@ -222,7 +222,38 @@ export const mockDb = {
       const db = getDB();
       const idx = db.reservas.findIndex(r => r.id === Number(id));
       if (idx !== -1) {
-        db.reservas[idx] = { ...db.reservas[idx], ...data };
+        const currentBooking = db.reservas[idx];
+        const newTipo = data.tipo || currentBooking.tipo;
+        if (newTipo === 'paseo') {
+          const maxSlots = Number(data.cupoMaximo !== undefined ? data.cupoMaximo : currentBooking.cupoMaximo) || 1;
+          const targetFecha = data.fecha || currentBooking.fecha;
+          const targetHoraInicio = data.horaInicio || currentBooking.horaInicio;
+          const targetCaballoId = Number(data.caballoId !== undefined ? data.caballoId : currentBooking.caballoId);
+
+          const matchingBookings = db.reservas.filter(r => 
+            r.id !== Number(id) && 
+            r.fecha === targetFecha && 
+            r.horaInicio === targetHoraInicio && 
+            r.estado !== "CANCELADA" &&
+            r.caballoId === targetCaballoId
+          );
+          const totalBooked = matchingBookings.reduce((sum, r) => sum + (r.cupoActual || 1), 0);
+          if (totalBooked >= maxSlots) {
+            throw new Error("EXCESO_CUPO: No hay cupo disponible para esta fecha, hora y caballo.");
+          }
+        }
+
+        const horse = db.caballos.find(c => c.id === Number(data.caballoId !== undefined ? data.caballoId : currentBooking.caballoId));
+        const client = db.usuarios.find(u => u.id === Number(data.clienteId !== undefined ? data.clienteId : currentBooking.clienteId));
+
+        db.reservas[idx] = { 
+          ...currentBooking, 
+          ...data,
+          caballoId: Number(data.caballoId !== undefined ? data.caballoId : currentBooking.caballoId),
+          caballoNombre: horse ? horse.nombre : currentBooking.caballoNombre,
+          clienteId: Number(data.clienteId !== undefined ? data.clienteId : currentBooking.clienteId),
+          clienteNombre: client ? client.nombre : currentBooking.clienteNombre
+        };
         saveDB(db);
         return db.reservas[idx];
       }
