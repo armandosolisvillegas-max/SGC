@@ -40,32 +40,29 @@ public class AuthController {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .rol(request.getRol())
                 .build();
-        
-        usuarioRepository.save(usuario);
-        
+
+        usuarioRepository.save(java.util.Objects.requireNonNull(usuario));
+
         final UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
         final String jwt = jwtUtil.generateToken(userDetails);
-        
+
         AuthResponse.UserDto userDto = new AuthResponse.UserDto(
-            usuario.getId(), usuario.getNombre(), usuario.getEmail(), usuario.getRol().name()
-        );
-        
+                usuario.getId(), usuario.getNombre(), usuario.getEmail(), usuario.getRol().name());
+
         return ResponseEntity.status(HttpStatus.CREATED).body(new AuthResponse(jwt, userDto));
     }
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-        );
+                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
         final UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
         final String jwt = jwtUtil.generateToken(userDetails);
 
         Usuario usuario = usuarioRepository.findByEmail(request.getEmail()).orElseThrow();
         AuthResponse.UserDto userDto = new AuthResponse.UserDto(
-            usuario.getId(), usuario.getNombre(), usuario.getEmail(), usuario.getRol().name()
-        );
-        
+                usuario.getId(), usuario.getNombre(), usuario.getEmail(), usuario.getRol().name());
+
         return ResponseEntity.ok(new AuthResponse(jwt, userDto));
     }
 }

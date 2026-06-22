@@ -26,6 +26,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("null")
 public class ReservaServiceImplTest {
 
     @Mock
@@ -54,7 +55,7 @@ public class ReservaServiceImplTest {
         });
         
         assertEquals(HttpStatus.CONFLICT, exception.getStatusCode());
-        assertTrue(exception.getReason().contains("El cupo para este paseo está lleno"));
+        assertTrue(java.util.Objects.requireNonNull(exception.getReason()).contains("El cupo para este paseo está lleno"));
         verify(reservaRepository, never()).save(any());
     }
 
