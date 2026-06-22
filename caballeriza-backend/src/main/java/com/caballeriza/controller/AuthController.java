@@ -42,18 +42,15 @@ public class AuthController {
                 .build();
         
         usuarioRepository.save(usuario);
-
-        final UserDetails userDetails = userDetailsService.loadUserByUsername(usuario.getEmail());
+        
+        final UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
         final String jwt = jwtUtil.generateToken(userDetails);
-
-        AuthResponse.UserResponse userResponse = new AuthResponse.UserResponse(
-                usuario.getId(),
-                usuario.getNombre(),
-                usuario.getEmail(),
-                usuario.getRol().name()
+        
+        AuthResponse.UserDto userDto = new AuthResponse.UserDto(
+            usuario.getId(), usuario.getNombre(), usuario.getEmail(), usuario.getRol().name()
         );
         
-        return ResponseEntity.status(HttpStatus.CREATED).body(new AuthResponse(jwt, userResponse));
+        return ResponseEntity.status(HttpStatus.CREATED).body(new AuthResponse(jwt, userDto));
     }
 
     @PostMapping("/login")
@@ -64,16 +61,11 @@ public class AuthController {
         final UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
         final String jwt = jwtUtil.generateToken(userDetails);
 
-        Usuario usuario = usuarioRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-
-        AuthResponse.UserResponse userResponse = new AuthResponse.UserResponse(
-                usuario.getId(),
-                usuario.getNombre(),
-                usuario.getEmail(),
-                usuario.getRol().name()
+        Usuario usuario = usuarioRepository.findByEmail(request.getEmail()).orElseThrow();
+        AuthResponse.UserDto userDto = new AuthResponse.UserDto(
+            usuario.getId(), usuario.getNombre(), usuario.getEmail(), usuario.getRol().name()
         );
         
-        return ResponseEntity.ok(new AuthResponse(jwt, userResponse));
+        return ResponseEntity.ok(new AuthResponse(jwt, userDto));
     }
 }

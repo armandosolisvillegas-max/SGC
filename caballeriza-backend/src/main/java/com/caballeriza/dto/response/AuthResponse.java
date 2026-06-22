@@ -7,11 +7,11 @@ import lombok.Data;
 @AllArgsConstructor
 public class AuthResponse {
     private String token;
-    private UserResponse user;
+    private UserDto user;
 
     @Data
     @AllArgsConstructor
-    public static class UserResponse {
+    public static class UserDto {
         private Long id;
         private String nombre;
         private String email;
