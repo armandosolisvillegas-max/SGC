@@ -25,4 +25,15 @@ public class EmpleadoController {
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) { service.delete(id); }
+
+    @GetMapping("/{id}/turnos")
+    public List<com.caballeriza.dto.TurnoDTO> getTurnos(@PathVariable Long id) {
+        return service.getTurnosByEmpleado(id);
+    }
+
+    @PostMapping("/{id}/turnos")
+    @ResponseStatus(HttpStatus.CREATED)
+    public com.caballeriza.dto.TurnoDTO addTurno(@PathVariable Long id, @RequestBody com.caballeriza.dto.TurnoDTO dto) {
+        return service.addTurno(id, dto);
+    }
 }

@@ -1,7 +1,8 @@
 package com.caballeriza.service;
-import com.caballeriza.entity.RegistroMedico;
+import com.caballeriza.dto.RegistroMedicoDTO;
+import com.caballeriza.dto.request.RegistroMedicoRequest;
 import java.util.List;
 public interface RegistroMedicoService {
-    List<RegistroMedico> getRegistrosByCaballo(Long caballoId);
-    RegistroMedico save(RegistroMedico registroMedico);
+    List<RegistroMedicoDTO> getRegistrosByCaballo(Long caballoId);
+    RegistroMedicoDTO save(Long caballoId, RegistroMedicoRequest request);
 }
