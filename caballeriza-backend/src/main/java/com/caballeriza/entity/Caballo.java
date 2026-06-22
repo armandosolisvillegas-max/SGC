@@ -22,6 +22,7 @@ public class Caballo {
     private String raza;
     private String sexo;
     private Double peso;
+    @Column(columnDefinition = "LONGTEXT")
     private String fotoUrl;
 
     @OneToMany(mappedBy = "caballo", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

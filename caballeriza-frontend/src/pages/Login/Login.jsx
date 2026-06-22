@@ -11,7 +11,7 @@ export const Login = () => {
   const [nombre, setNombre] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [rol, setRol] = useState('CLIENTE');
+  const [rol, setRol] = useState('ROLE_CLIENTE');
 
   const [formErrors, setFormErrors] = useState({});
   const [apiError, setApiError] = useState('');
@@ -193,10 +193,10 @@ export const Login = () => {
                 onChange={(e) => setRol(e.target.value)}
                 style={{ backgroundColor: 'var(--bg-primary)', color: 'white' }}
               >
-                <option value="CLIENTE">Cliente (Propietario / Jinete)</option>
-                <option value="CUIDADOR">Cuidador de Establo</option>
-                <option value="VETERINARIO">Veterinario Asignado</option>
-                <option value="ADMINISTRADOR">Administrador General</option>
+                <option value="ROLE_CLIENTE">Cliente (Propietario / Jinete)</option>
+                <option value="ROLE_CUIDADOR">Cuidador de Establo</option>
+                <option value="ROLE_VETERINARIO">Veterinario Asignado</option>
+                <option value="ROLE_ADMIN">Administrador General</option>
               </select>
             </div>
           )}

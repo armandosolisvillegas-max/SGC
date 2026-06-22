@@ -13,10 +13,20 @@ export const AuthProvider = ({ children }) => {
     // Check if token exists in localStorage on startup
     const storedToken = localStorage.getItem('sgc_token');
     const storedUser = localStorage.getItem('sgc_user');
-    
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
+
+    if (storedToken && storedUser && storedUser !== 'undefined' && storedUser !== 'null') {
+      try {
+        setToken(storedToken);
+        setUser(JSON.parse(storedUser));
+      } catch (e) {
+        // localStorage had corrupted data — clean it up
+        localStorage.removeItem('sgc_token');
+        localStorage.removeItem('sgc_user');
+      }
+    } else if (storedToken || storedUser) {
+      // Remove any partial/invalid entries
+      localStorage.removeItem('sgc_token');
+      localStorage.removeItem('sgc_user');
     }
     setLoading(false);
   }, []);
@@ -75,10 +85,11 @@ export const AuthProvider = ({ children }) => {
   };
 
   const isRole = {
-    isAdmin: () => hasRole('ADMINISTRADOR'),
-    isCuidador: () => hasRole('CUIDADOR'),
-    isVeterinario: () => hasRole('VETERINARIO'),
-    isCliente: () => hasRole('CLIENTE'),
+    isAdmin: () => hasRole('ROLE_ADMIN'),
+    isCuidador: () => hasRole('ROLE_CUIDADOR'),
+    isVeterinario: () => hasRole('ROLE_VETERINARIO'),
+    isCliente: () => hasRole('ROLE_CLIENTE'),
+    isPotrador: () => hasRole('ROLE_POTRADOR'),
   };
 
   return (
