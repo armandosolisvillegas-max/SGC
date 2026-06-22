@@ -191,6 +191,15 @@ export const inventarioApi = {
       if (isNetworkError(e)) return mockDb.insumos.update(id, data);
       throw e;
     }
+  },
+  delete: async (id) => {
+    try {
+      const res = await axiosClient.delete(`/insumos/${id}`);
+      return res.data;
+    } catch (e) {
+      if (isNetworkError(e)) return mockDb.insumos.delete(id);
+      throw e;
+    }
   }
 };
 

@@ -44,4 +44,11 @@ public class InventarioServiceImpl implements InventarioService {
         i.setStockActual(dto.getStockActual()); i.setStockMinimo(dto.getStockMinimo());
         return mapToDTO(repository.save(i));
     }
+
+    @Override public void delete(Long id) {
+        if (!repository.existsById(java.util.Objects.requireNonNull(id))) {
+            throw new ResourceNotFoundException("Insumo no encontrado");
+        }
+        repository.deleteById(id);
+    }
 }

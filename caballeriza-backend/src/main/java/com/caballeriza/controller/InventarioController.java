@@ -24,4 +24,8 @@ public class InventarioController {
 
     @PutMapping("/{id}")
     public InsumoDTO update(@PathVariable Long id, @RequestBody InsumoDTO dto) { return service.update(id, dto); }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) { service.delete(id); }
 }

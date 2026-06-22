@@ -76,6 +76,17 @@ export const Inventario = () => {
     }
   };
 
+  const handleDeleteInsumo = async (id) => {
+    if (window.confirm('¿Seguro que desea eliminar este insumo del inventario?')) {
+      try {
+        await inventarioApi.delete(id);
+        fetchSupplies();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  };
+
   const openAddModal = () => {
     setEditingInsumo(null);
     setInsumoForm({ nombre: '', tipo: 'alimento', stockActual: '', stockMinimo: '' });
@@ -126,9 +137,14 @@ export const Inventario = () => {
           )}
         </td>
         <td>
-          <Button variant="secondary" onClick={() => openEditModal(insumo)} style={{ padding: '0.4rem 0.6rem' }} icon="fa-solid fa-pen-to-square">
-            Ajustar
-          </Button>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <Button variant="secondary" onClick={() => openEditModal(insumo)} style={{ padding: '0.4rem 0.6rem' }} icon="fa-solid fa-pen-to-square">
+              Ajustar
+            </Button>
+            <Button variant="danger" onClick={() => handleDeleteInsumo(insumo.id)} style={{ padding: '0.4rem 0.6rem', backgroundColor: 'transparent', borderColor: 'var(--color-error)', color: 'var(--color-error)' }} icon="fa-solid fa-trash">
+              Eliminar
+            </Button>
+          </div>
         </td>
       </tr>
     );

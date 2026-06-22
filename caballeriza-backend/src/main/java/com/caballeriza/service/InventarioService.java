@@ -6,4 +6,5 @@ public interface InventarioService {
     List<InsumoDTO> getStockBajo();
     InsumoDTO create(InsumoDTO dto);
     InsumoDTO update(Long id, InsumoDTO dto);
+    void delete(Long id);
 }
