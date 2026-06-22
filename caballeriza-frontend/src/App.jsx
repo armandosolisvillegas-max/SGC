@@ -61,7 +61,7 @@ export const App = () => {
 
           <Route path="/personal" element={
             <PrivateRoute>
-              <RoleRoute allowedRoles={['ADMINISTRADOR']}>
+              <RoleRoute allowedRoles={['ROLE_ADMIN']}>
                 <AppLayout>
                   <Personal />
                 </AppLayout>
@@ -79,7 +79,7 @@ export const App = () => {
 
           <Route path="/alimentacion" element={
             <PrivateRoute>
-              <RoleRoute allowedRoles={['ADMINISTRADOR', 'VETERINARIO', 'CUIDADOR']}>
+              <RoleRoute allowedRoles={['ROLE_ADMIN', 'ROLE_VETERINARIO', 'ROLE_CUIDADOR']}>
                 <AppLayout>
                   <Alimentacion />
                 </AppLayout>
@@ -89,7 +89,7 @@ export const App = () => {
 
           <Route path="/inventario" element={
             <PrivateRoute>
-              <RoleRoute allowedRoles={['ADMINISTRADOR', 'VETERINARIO']}>
+              <RoleRoute allowedRoles={['ROLE_ADMIN', 'ROLE_VETERINARIO']}>
                 <AppLayout>
                   <Inventario />
                 </AppLayout>
