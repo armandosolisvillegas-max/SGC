@@ -21,6 +21,7 @@ public class AlimentacionServiceImpl implements AlimentacionService {
     private final PlanAlimentacionRepository planRepository;
     private final RegistroSuministroRepository suministroRepository;
     private final CaballoRepository caballoRepository;
+    private final com.caballeriza.repository.InsumoRepository insumoRepository;
 
     @Override public List<PlanAlimentacionDTO> getPlanesByCaballo(Long caballoId) {
         return planRepository.findAll().stream()
@@ -29,6 +30,7 @@ public class AlimentacionServiceImpl implements AlimentacionService {
                     PlanAlimentacionDTO dto = new PlanAlimentacionDTO();
                     dto.setId(p.getId()); dto.setDescripcion(p.getDescripcion());
                     dto.setFrecuencia(p.getFrecuencia()); dto.setCaballoId(p.getCaballo().getId());
+                    dto.setInsumoId(p.getInsumo() != null ? p.getInsumo().getId() : null);
                     return dto;
                 }).collect(Collectors.toList());
     }
@@ -37,8 +39,16 @@ public class AlimentacionServiceImpl implements AlimentacionService {
         Caballo c = caballoRepository.findById(java.util.Objects.requireNonNull(caballoId)).orElseThrow(() -> new ResourceNotFoundException("Caballo no encontrado"));
         PlanAlimentacion p = new PlanAlimentacion();
         p.setDescripcion(dto.getDescripcion()); p.setFrecuencia(dto.getFrecuencia()); p.setCaballo(c);
+        
+        com.caballeriza.entity.Insumo insumo = null;
+        if (dto.getInsumoId() != null) {
+            insumo = insumoRepository.findById(java.util.Objects.requireNonNull(dto.getInsumoId())).orElse(null);
+        }
+        p.setInsumo(insumo);
+
         p = planRepository.save(p);
         dto.setId(p.getId()); dto.setCaballoId(c.getId());
+        dto.setInsumoId(insumo != null ? insumo.getId() : null);
         return dto;
     }
 
@@ -54,6 +64,13 @@ public class AlimentacionServiceImpl implements AlimentacionService {
         } else {
             dto.setCaballoNombre("Desconocido");
         }
+        
+        if (p.getInsumo() != null && dto.getCantidad() != null) {
+            com.caballeriza.entity.Insumo i = p.getInsumo();
+            i.setStockActual(Math.max(0.0, i.getStockActual() - dto.getCantidad()));
+            insumoRepository.save(i);
+        }
+
         return dto;
     }
 

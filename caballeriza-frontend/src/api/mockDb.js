@@ -412,6 +412,13 @@ export const mockDb = {
         return updated;
       }
       throw new Error("Insumo no encontrado.");
+    },
+    delete: (id) => {
+      const db = getDB();
+      db.insumos = db.insumos.filter(i => i.id !== Number(id));
+      db.alertas = db.alertas.filter(a => !(a.tipo === "stock_bajo" && a.referenciaId === Number(id)));
+      saveDB(db);
+      return true;
     }
   },
 

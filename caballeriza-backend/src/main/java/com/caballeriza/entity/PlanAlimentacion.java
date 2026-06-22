@@ -22,6 +22,10 @@ public class PlanAlimentacion {
     @JoinColumn(name = "caballo_id", nullable = false)
     private Caballo caballo;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "insumo_id")
+    private Insumo insumo;
+
     @OneToMany(mappedBy = "planAlimentacion", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<RegistroSuministro> registrosSuministros;
 }
