@@ -1,0 +1,1 @@
+ALTER TABLE caballos MODIFY COLUMN foto_url LONGTEXT;

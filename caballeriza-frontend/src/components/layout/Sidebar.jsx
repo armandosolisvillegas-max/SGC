@@ -6,12 +6,12 @@ export const Sidebar = ({ isOpen, onClose }) => {
   const { user, hasRole } = useAuth();
 
   const menuItems = [
-    { path: '/dashboard', label: 'Inicio / Dashboard', icon: 'fa-solid fa-gauge-high', roles: ['ADMINISTRADOR', 'VETERINARIO', 'CUIDADOR', 'CLIENTE'] },
-    { path: '/caballos', label: 'Caballos', icon: 'fa-solid fa-horse', roles: ['ADMINISTRADOR', 'VETERINARIO', 'CUIDADOR', 'CLIENTE'] },
-    { path: '/personal', label: 'Personal & Turnos', icon: 'fa-solid fa-users-gear', roles: ['ADMINISTRADOR'] },
-    { path: '/calendario', label: 'Calendario & Reservas', icon: 'fa-regular fa-calendar-days', roles: ['ADMINISTRADOR', 'VETERINARIO', 'CUIDADOR', 'CLIENTE'] },
-    { path: '/alimentacion', label: 'Alimentación', icon: 'fa-solid fa-wheat-awn', roles: ['ADMINISTRADOR', 'VETERINARIO', 'CUIDADOR'] },
-    { path: '/inventario', label: 'Inventario de Insumos', icon: 'fa-solid fa-boxes-stacked', roles: ['ADMINISTRADOR', 'VETERINARIO'] },
+    { path: '/dashboard', label: 'Inicio / Dashboard', icon: 'fa-solid fa-gauge-high', roles: ['ROLE_ADMIN', 'ROLE_VETERINARIO', 'ROLE_CUIDADOR', 'ROLE_CLIENTE', 'ROLE_POTRADOR'] },
+    { path: '/caballos', label: 'Caballos', icon: 'fa-solid fa-horse', roles: ['ROLE_ADMIN', 'ROLE_VETERINARIO', 'ROLE_CUIDADOR', 'ROLE_CLIENTE', 'ROLE_POTRADOR'] },
+    { path: '/personal', label: 'Personal & Turnos', icon: 'fa-solid fa-users-gear', roles: ['ROLE_ADMIN'] },
+    { path: '/calendario', label: 'Calendario & Reservas', icon: 'fa-regular fa-calendar-days', roles: ['ROLE_ADMIN', 'ROLE_VETERINARIO', 'ROLE_CUIDADOR', 'ROLE_CLIENTE', 'ROLE_POTRADOR'] },
+    { path: '/alimentacion', label: 'Alimentación', icon: 'fa-solid fa-wheat-awn', roles: ['ROLE_ADMIN', 'ROLE_VETERINARIO', 'ROLE_CUIDADOR'] },
+    { path: '/inventario', label: 'Inventario de Insumos', icon: 'fa-solid fa-boxes-stacked', roles: ['ROLE_ADMIN', 'ROLE_VETERINARIO'] },
   ];
 
   const visibleItems = menuItems.filter(item => hasRole(item.roles));

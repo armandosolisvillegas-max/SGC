@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth';
 import { caballoApi } from '../../api/caballoApi';
 import usePagination from '../../hooks/usePagination';
@@ -8,6 +9,7 @@ import Button from '../../components/ui/Button';
 
 export const Caballos = () => {
   const { isRole } = useAuth();
+  const navigate = useNavigate();
   const [horses, setHorses] = useState([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
@@ -19,6 +21,7 @@ export const Caballos = () => {
     nombre: '', identificador: '', edad: '', raza: '', sexo: 'Macho', peso: '', fotoUrl: ''
   });
   const [horseErrors, setHorseErrors] = useState({});
+  const [horseSaveError, setHorseSaveError] = useState('');
 
   // Medical History states
   const [isMedicalModalOpen, setIsMedicalModalOpen] = useState(false);
@@ -55,16 +58,29 @@ export const Caballos = () => {
   // Pagination hook
   const pagination = usePagination(filteredHorses, 6);
 
-  // Base64 file reader for simulated image uploads
+  // Base64 file reader with compression to avoid DB truncation
   const handlePhotoUpload = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setHorseForm(prev => ({ ...prev, fotoUrl: reader.result }));
-      };
-      reader.readAsDataURL(file);
-    }
+    if (!file) return;
+
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+    img.onload = () => {
+      const MAX_SIZE = 800;
+      let { width, height } = img;
+      if (width > MAX_SIZE || height > MAX_SIZE) {
+        if (width > height) { height = Math.round(height * MAX_SIZE / width); width = MAX_SIZE; }
+        else { width = Math.round(width * MAX_SIZE / height); height = MAX_SIZE; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      const compressed = canvas.toDataURL('image/jpeg', 0.75);
+      URL.revokeObjectURL(objectUrl);
+      setHorseForm(prev => ({ ...prev, fotoUrl: compressed }));
+    };
+    img.src = objectUrl;
   };
 
   // Validate Horse Form
@@ -87,6 +103,7 @@ export const Caballos = () => {
 
   const handleSaveHorse = async (e) => {
     e.preventDefault();
+    setHorseSaveError('');
     if (!validateHorse()) return;
 
     try {
@@ -104,6 +121,8 @@ export const Caballos = () => {
       fetchHorses();
     } catch (err) {
       console.error(err);
+      const msg = err?.response?.data?.message || err?.message || 'Error al guardar el caballo. Intente de nuevo.';
+      setHorseSaveError(msg);
     }
   };
 
@@ -193,9 +212,33 @@ export const Caballos = () => {
   return (
     <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-        <div>
-          <h1>Gestión de Caballos</h1>
-          <p>Supervisa el registro, ficha técnica e historial de salud de todos los equinos.</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <button
+            onClick={() => navigate('/dashboard')}
+            title="Volver al Inicio"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '38px',
+              height: '38px',
+              borderRadius: 'var(--radius-md)',
+              backgroundColor: 'rgba(255,255,255,0.06)',
+              border: '1px solid var(--border-color)',
+              color: 'var(--text-secondary)',
+              cursor: 'pointer',
+              transition: 'var(--transition-normal)',
+              flexShrink: 0
+            }}
+            onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'rgba(245,158,11,0.15)'; e.currentTarget.style.color = 'var(--accent-gold)'; e.currentTarget.style.borderColor = 'var(--accent-gold)'; }}
+            onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.borderColor = 'var(--border-color)'; }}
+          >
+            <i className="fa-solid fa-house" style={{ fontSize: '0.9rem' }}></i>
+          </button>
+          <div>
+            <h1>Gestión de Caballos</h1>
+            <p>Supervisa el registro, ficha técnica e historial de salud de todos los equinos.</p>
+          </div>
         </div>
         {!isRole.isCliente() && (
           <Button onClick={openAddHorseModal} icon="fa-solid fa-plus">
@@ -429,6 +472,23 @@ export const Caballos = () => {
               </div>
             )}
           </div>
+
+          {horseSaveError && (
+            <div style={{
+              backgroundColor: 'rgba(239,68,68,0.15)',
+              border: '1px solid var(--color-error)',
+              color: 'var(--text-primary)',
+              padding: '0.75rem 1rem',
+              borderRadius: 'var(--radius-md)',
+              fontSize: '0.85rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}>
+              <i className="fa-solid fa-triangle-exclamation" style={{ color: 'var(--color-error)' }}></i>
+              <span>{horseSaveError}</span>
+            </div>
+          )}
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem' }}>
             <Button variant="secondary" onClick={() => setIsHorseModalOpen(false)}>Cancelar</Button>
