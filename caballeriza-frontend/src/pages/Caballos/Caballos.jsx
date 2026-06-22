@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth';
 import { caballoApi } from '../../api/caballoApi';
+import { alimentacionApi } from '../../api/apiModules';
 import usePagination from '../../hooks/usePagination';
 import Table from '../../components/ui/Table';
 import Modal from '../../components/ui/Modal';
@@ -31,6 +32,8 @@ export const Caballos = () => {
     tipo: 'vacuna', descripcion: '', responsableNombre: ''
   });
   const [medicalErrors, setMedicalErrors] = useState({});
+  const [feedingPlan, setFeedingPlan] = useState(null);
+  const [feedingLogs, setFeedingLogs] = useState([]);
 
   const fetchHorses = async () => {
     try {
@@ -164,12 +167,35 @@ export const Caballos = () => {
     setSelectedHorse(horse);
     setMedicalErrors({});
     setMedicalForm({ tipo: 'vacuna', descripcion: '', responsableNombre: '' });
+    setFeedingPlan(null);
+    setFeedingLogs([]);
     try {
-      const history = await caballoApi.getMedicalHistory(horse.id);
+      const [history, planResult, logsList] = await Promise.all([
+        caballoApi.getMedicalHistory(horse.id),
+        alimentacionApi.getPlanByCaballo(horse.id),
+        alimentacionApi.getLogs()
+      ]);
       setMedicalHistory(history);
+
+      const plan = Array.isArray(planResult) ? planResult[0] : planResult;
+      setFeedingPlan(plan);
+
+      if (plan) {
+        // Filter supply logs for this horse or plan
+        const horseLogs = logsList.filter(log => log.planId === plan.id || log.caballoNombre === horse.nombre);
+        setFeedingLogs(horseLogs.reverse());
+      }
       setIsMedicalModalOpen(true);
     } catch (e) {
       console.error(e);
+      // Fallback: at least open modal with medical history if logs fail
+      try {
+        const history = await caballoApi.getMedicalHistory(horse.id);
+        setMedicalHistory(history);
+        setIsMedicalModalOpen(true);
+      } catch (err) {
+        console.error(err);
+      }
     }
   };
 
@@ -505,6 +531,64 @@ export const Caballos = () => {
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           
+          {/* Diet and nutrition details */}
+          <div className="card" style={{ padding: '1rem', backgroundColor: 'rgba(245, 158, 11, 0.04)', border: '1px solid rgba(245, 158, 11, 0.2)' }}>
+            <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', color: 'var(--accent-gold)' }}>
+              <i className="fa-solid fa-wheat-awn"></i>
+              Plan Nutricional / Dieta
+            </h4>
+            {feedingPlan ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.9rem' }}>
+                <div><strong>Dieta:</strong> {feedingPlan.descripcion}</div>
+                <div><strong>Frecuencia:</strong> {feedingPlan.frecuencia}</div>
+              </div>
+            ) : (
+              <p style={{ margin: 0, fontStyle: 'italic', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                No tiene asignado un plan de alimentación actualmente.
+              </p>
+            )}
+          </div>
+
+          {/* Supply/Ration history */}
+          {feedingPlan && (
+            <div>
+              <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                <i className="fa-solid fa-clock-rotate-left"></i>
+                Raciones Suministradas Recientemente
+              </h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '150px', overflowY: 'auto' }}>
+                {feedingLogs.length > 0 ? (
+                  feedingLogs.map(log => (
+                    <div key={log.id} style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: '0.5rem 0.75rem',
+                      backgroundColor: 'var(--bg-secondary)',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: 'var(--radius-sm)',
+                      fontSize: '0.85rem'
+                    }}>
+                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                        <span className={`badge ${log.tipo === 'medicina' ? 'badge-info' : 'badge-success'}`} style={{ padding: '0.1rem 0.3rem', fontSize: '0.7rem' }}>
+                          {log.tipo}
+                        </span>
+                        <span>{log.cantidad} kg / u</span>
+                      </div>
+                      <span style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>
+                        {log.fecha ? log.fecha.split('T')[0] : ''}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <p style={{ margin: 0, fontStyle: 'italic', fontSize: '0.85rem', color: 'var(--text-secondary)', padding: '0.5rem' }}>
+                    No se han registrado suministros recientes para este caballo.
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Add Medical report (Only veterinarians or admins) */}
           {hasMedicalCreationRights() && (
             <div className="card" style={{ padding: '1rem', backgroundColor: 'rgba(255, 255, 255, 0.01)' }}>
