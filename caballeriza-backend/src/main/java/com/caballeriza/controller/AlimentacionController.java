@@ -12,6 +12,11 @@ import java.util.List;
 public class AlimentacionController {
     private final AlimentacionService service;
 
+    @GetMapping("/api/planes")
+    public List<PlanAlimentacionDTO> getAllPlanes() {
+        return service.getAllPlanes();
+    }
+
     @GetMapping("/api/caballos/{id}/plan-alimentacion")
     public List<PlanAlimentacionDTO> getPlanes(@PathVariable Long id) {
         return service.getPlanesByCaballo(id);
@@ -21,6 +26,17 @@ public class AlimentacionController {
     @ResponseStatus(HttpStatus.CREATED)
     public PlanAlimentacionDTO createPlan(@PathVariable Long id, @RequestBody PlanAlimentacionDTO dto) {
         return service.createPlan(id, dto);
+    }
+
+    @PutMapping("/api/planes/{id}")
+    public PlanAlimentacionDTO updatePlan(@PathVariable Long id, @RequestBody PlanAlimentacionDTO dto) {
+        return service.updatePlan(id, dto);
+    }
+
+    @DeleteMapping("/api/planes/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deletePlan(@PathVariable Long id) {
+        service.deletePlan(id);
     }
 
     @PostMapping("/api/planes/{id}/suministros")

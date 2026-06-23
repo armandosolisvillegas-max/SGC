@@ -23,33 +23,54 @@ public class AlimentacionServiceImpl implements AlimentacionService {
     private final CaballoRepository caballoRepository;
     private final com.caballeriza.repository.InsumoRepository insumoRepository;
 
+    private PlanAlimentacionDTO mapPlan(PlanAlimentacion p) {
+        PlanAlimentacionDTO dto = new PlanAlimentacionDTO();
+        dto.setId(p.getId()); dto.setDescripcion(p.getDescripcion());
+        dto.setFrecuencia(p.getFrecuencia()); dto.setCaballoId(p.getCaballo().getId());
+        dto.setCaballoNombre(p.getCaballo().getNombre());
+        dto.setInsumoId(p.getInsumo() != null ? p.getInsumo().getId() : null);
+        dto.setInsumoNombre(p.getInsumo() != null ? p.getInsumo().getNombre() : null);
+        return dto;
+    }
+
+    @Override public List<PlanAlimentacionDTO> getAllPlanes() {
+        return planRepository.findAll().stream().map(this::mapPlan).collect(Collectors.toList());
+    }
+
     @Override public List<PlanAlimentacionDTO> getPlanesByCaballo(Long caballoId) {
-        return planRepository.findAll().stream()
-                .filter(p -> p.getCaballo().getId().equals(caballoId))
-                .map(p -> {
-                    PlanAlimentacionDTO dto = new PlanAlimentacionDTO();
-                    dto.setId(p.getId()); dto.setDescripcion(p.getDescripcion());
-                    dto.setFrecuencia(p.getFrecuencia()); dto.setCaballoId(p.getCaballo().getId());
-                    dto.setInsumoId(p.getInsumo() != null ? p.getInsumo().getId() : null);
-                    return dto;
-                }).collect(Collectors.toList());
+        return planRepository.findByCaballoId(caballoId).stream().map(this::mapPlan).collect(Collectors.toList());
     }
 
     @Override public PlanAlimentacionDTO createPlan(Long caballoId, PlanAlimentacionDTO dto) {
-        Caballo c = caballoRepository.findById(java.util.Objects.requireNonNull(caballoId)).orElseThrow(() -> new ResourceNotFoundException("Caballo no encontrado"));
+        Caballo c = caballoRepository.findById(java.util.Objects.requireNonNull(caballoId))
+            .orElseThrow(() -> new ResourceNotFoundException("Caballo no encontrado"));
         PlanAlimentacion p = new PlanAlimentacion();
-        p.setDescripcion(dto.getDescripcion()); p.setFrecuencia(dto.getFrecuencia()); p.setCaballo(c);
-        
+        p.setCaballo(c);
+        p.setDescripcion(dto.getDescripcion());
+        p.setFrecuencia(dto.getFrecuencia());
         com.caballeriza.entity.Insumo insumo = null;
         if (dto.getInsumoId() != null) {
             insumo = insumoRepository.findById(java.util.Objects.requireNonNull(dto.getInsumoId())).orElse(null);
         }
         p.setInsumo(insumo);
+        return mapPlan(planRepository.save(p));
+    }
 
-        p = planRepository.save(p);
-        dto.setId(p.getId()); dto.setCaballoId(c.getId());
-        dto.setInsumoId(insumo != null ? insumo.getId() : null);
-        return dto;
+    @Override public PlanAlimentacionDTO updatePlan(Long planId, PlanAlimentacionDTO dto) {
+        PlanAlimentacion p = planRepository.findById(java.util.Objects.requireNonNull(planId))
+            .orElseThrow(() -> new ResourceNotFoundException("Plan no encontrado"));
+        p.setDescripcion(dto.getDescripcion());
+        p.setFrecuencia(dto.getFrecuencia());
+        com.caballeriza.entity.Insumo insumo = null;
+        if (dto.getInsumoId() != null) {
+            insumo = insumoRepository.findById(java.util.Objects.requireNonNull(dto.getInsumoId())).orElse(null);
+        }
+        p.setInsumo(insumo);
+        return mapPlan(planRepository.save(p));
+    }
+
+    @Override public void deletePlan(Long planId) {
+        planRepository.deleteById(java.util.Objects.requireNonNull(planId));
     }
 
     @Override public RegistroSuministroDTO createSuministro(Long planId, RegistroSuministroDTO dto) {

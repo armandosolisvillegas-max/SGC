@@ -117,6 +117,15 @@ export const reservaApi = {
 };
 
 export const alimentacionApi = {
+  getAllPlanes: async () => {
+    try {
+      const res = await axiosClient.get('/planes');
+      return res.data;
+    } catch (e) {
+      if (isNetworkError(e)) return mockDb.alimentacion.getAllPlanes();
+      throw e;
+    }
+  },
   getPlanByCaballo: async (caballoId) => {
     try {
       const res = await axiosClient.get(`/caballos/${caballoId}/plan-alimentacion`);
@@ -135,6 +144,23 @@ export const alimentacionApi = {
       throw e;
     }
   },
+  updatePlan: async (planId, planData) => {
+    try {
+      const res = await axiosClient.put(`/planes/${planId}`, planData);
+      return res.data;
+    } catch (e) {
+      if (isNetworkError(e)) return mockDb.alimentacion.updatePlan(planId, planData);
+      throw e;
+    }
+  },
+  deletePlan: async (planId) => {
+    try {
+      await axiosClient.delete(`/planes/${planId}`);
+    } catch (e) {
+      if (isNetworkError(e)) return mockDb.alimentacion.deletePlan(planId);
+      throw e;
+    }
+  },
   logSuministro: async (planId, supplyData) => {
     try {
       const res = await axiosClient.post(`/planes/${planId}/suministros`, supplyData);
@@ -146,7 +172,7 @@ export const alimentacionApi = {
   },
   getLogs: async () => {
     try {
-      const res = await axiosClient.get('/planes/suministros'); // or similar
+      const res = await axiosClient.get('/planes/suministros');
       return res.data;
     } catch (e) {
       if (isNetworkError(e)) return mockDb.alimentacion.getLogs();

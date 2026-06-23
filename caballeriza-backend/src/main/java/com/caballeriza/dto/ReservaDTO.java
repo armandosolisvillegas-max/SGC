@@ -14,4 +14,6 @@ public class ReservaDTO {
     private Integer cupoActual;
     private Long caballoId;
     private Long clienteId;
+    private String caballoNombre;
+    private String clienteNombre;
 }
