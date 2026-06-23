@@ -11,13 +11,15 @@ export const Alimentacion = () => {
   const navigate = useNavigate();
   const [horses, setHorses] = useState([]);
   const [supplies, setSupplies] = useState([]);
+  const [plans, setPlans] = useState([]);
   const [supplyLogs, setSupplyLogs] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Edit Nutrition Plan Modal
+  // Plan Modal (create/edit)
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
-  const [selectedHorse, setSelectedHorse] = useState(null);
-  const [planForm, setPlanForm] = useState({ descripcion: '', frecuencia: '', insumoId: '' });
+  const [isEditingPlan, setIsEditingPlan] = useState(false);
+  const [editingPlanId, setEditingPlanId] = useState(null);
+  const [planForm, setPlanForm] = useState({ descripcion: '', frecuencia: '', insumoId: '', caballoId: '' });
   const [planErrors, setPlanErrors] = useState({});
 
   // Log Feeding Modal
@@ -29,29 +31,17 @@ export const Alimentacion = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [horsesList, suppliesList, logsList] = await Promise.all([
+      const [horsesList, suppliesList, plansList, logsList] = await Promise.all([
         caballoApi.getAll(),
         inventarioApi.getAll(),
+        alimentacionApi.getAllPlanes(),
         alimentacionApi.getLogs()
       ]);
 
-      // Enrich horse list with feeding plan
-      const enrichedHorses = await Promise.all(
-        horsesList.map(async (horse) => {
-          const planResult = await alimentacionApi.getPlanByCaballo(horse.id);
-          const plan = Array.isArray(planResult) ? planResult[0] : planResult;
-          const insumo = plan ? suppliesList.find(i => i.id === Number(plan.insumoId)) : null;
-          return {
-            ...horse,
-            plan: plan || null,
-            insumoNombre: insumo ? insumo.nombre : 'No especificado'
-          };
-        })
-      );
-
-      setHorses(enrichedHorses);
+      setHorses(horsesList);
       setSupplies(suppliesList);
-      setSupplyLogs(logsList.reverse()); // latest first
+      setPlans(plansList);
+      setSupplyLogs(Array.isArray(logsList) ? [...logsList].reverse() : []);
     } catch (e) {
       console.error(e);
     } finally {
@@ -63,18 +53,33 @@ export const Alimentacion = () => {
     loadData();
   }, []);
 
-  const horsePagination = usePagination(horses, 5);
+  const plansPagination = usePagination(plans, 8);
   const logsPagination = usePagination(supplyLogs, 5);
 
-  // Edit nutrition plan
-  const openPlanModal = (horse) => {
-    setSelectedHorse(horse);
+  // --- Plan CRUD ---
+  const openAddPlanModal = () => {
     setPlanForm({
-      descripcion: horse.plan?.descripcion || '',
-      frecuencia: horse.plan?.frecuencia || 'Diario (Mañana y Tarde)',
-      insumoId: horse.plan?.insumoId || (supplies.length > 0 ? supplies[0].id : '')
+      descripcion: '',
+      frecuencia: 'Diario (Mañana y Tarde)',
+      insumoId: supplies.length > 0 ? supplies[0].id : '',
+      caballoId: horses.length > 0 ? horses[0].id : ''
     });
     setPlanErrors({});
+    setIsEditingPlan(false);
+    setEditingPlanId(null);
+    setIsPlanModalOpen(true);
+  };
+
+  const openEditPlanModal = (plan) => {
+    setPlanForm({
+      descripcion: plan.descripcion || '',
+      frecuencia: plan.frecuencia || 'Diario (Mañana y Tarde)',
+      insumoId: plan.insumoId || (supplies.length > 0 ? supplies[0].id : ''),
+      caballoId: plan.caballoId || ''
+    });
+    setPlanErrors({});
+    setIsEditingPlan(true);
+    setEditingPlanId(plan.id);
     setIsPlanModalOpen(true);
   };
 
@@ -83,6 +88,7 @@ export const Alimentacion = () => {
     if (!planForm.descripcion.trim()) err.descripcion = 'La descripción es obligatoria.';
     if (!planForm.frecuencia.trim()) err.frecuencia = 'La frecuencia es obligatoria.';
     if (!planForm.insumoId) err.insumoId = 'Debe vincular un insumo del inventario.';
+    if (!isEditingPlan && !planForm.caballoId) err.caballoId = 'Debe seleccionar un caballo.';
     setPlanErrors(err);
     return Object.keys(err).length === 0;
   };
@@ -90,9 +96,12 @@ export const Alimentacion = () => {
   const handleSavePlan = async (e) => {
     e.preventDefault();
     if (!validatePlan()) return;
-
     try {
-      await alimentacionApi.savePlan(selectedHorse.id, planForm);
+      if (isEditingPlan) {
+        await alimentacionApi.updatePlan(editingPlanId, planForm);
+      } else {
+        await alimentacionApi.savePlan(planForm.caballoId, planForm);
+      }
       setIsPlanModalOpen(false);
       loadData();
     } catch (err) {
@@ -100,15 +109,22 @@ export const Alimentacion = () => {
     }
   };
 
-  // Log Feeding Suministro
-  const openFeedingModal = (horse) => {
-    if (!horse.plan) {
-      alert("Primero debe asignar un Plan de Alimentación a este caballo.");
-      return;
+  const handleDeletePlan = async (planId) => {
+    if (window.confirm('¿Está seguro que desea eliminar este plan de alimentación?')) {
+      try {
+        await alimentacionApi.deletePlan(planId);
+        loadData();
+      } catch (err) {
+        console.error(err);
+      }
     }
-    setFeedingHorseName(horse.nombre);
+  };
+
+  // --- Feeding Log ---
+  const openFeedingModal = (plan) => {
+    setFeedingHorseName(plan.caballoNombre || 'Caballo');
     setFeedingForm({
-      planId: horse.plan.id,
+      planId: plan.id,
       cantidad: '',
       tipo: 'alimento'
     });
@@ -128,7 +144,6 @@ export const Alimentacion = () => {
   const handleLogFeeding = async (e) => {
     e.preventDefault();
     if (!validateFeeding()) return;
-
     try {
       await alimentacionApi.logSuministro(feedingForm.planId, {
         cantidad: feedingForm.cantidad,
@@ -141,27 +156,33 @@ export const Alimentacion = () => {
     }
   };
 
-  const renderHorseRow = (horse) => (
-    <tr key={horse.id}>
-      <td><strong>{horse.nombre}</strong> <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>({horse.identificador})</span></td>
+  // --- Render Rows ---
+  const renderPlanRow = (plan) => (
+    <tr key={plan.id}>
+      <td><strong>{plan.caballoNombre || 'N/A'}</strong></td>
       <td>
-        {horse.plan ? (
-          <div>
-            <div style={{ fontWeight: 500 }}>{horse.plan.descripcion}</div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--accent-gold)' }}>Frecuencia: {horse.plan.frecuencia}</div>
-          </div>
+        <div>
+          <div style={{ fontWeight: 500 }}>{plan.descripcion}</div>
+          <div style={{ fontSize: '0.8rem', color: 'var(--accent-gold)' }}>Frecuencia: {plan.frecuencia}</div>
+        </div>
+      </td>
+      <td>
+        {plan.insumoNombre ? (
+          <span className="badge badge-success">{plan.insumoNombre}</span>
         ) : (
-          <span style={{ fontStyle: 'italic', color: 'var(--text-secondary)' }}>Sin plan asignado</span>
+          <span style={{ fontStyle: 'italic', color: 'var(--text-secondary)' }}>No especificado</span>
         )}
       </td>
-      <td>{horse.insumoNombre}</td>
       <td>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <Button variant="secondary" onClick={() => openPlanModal(horse)} style={{ padding: '0.4rem 0.6rem' }} icon="fa-solid fa-pen-to-square">
-            Definir Plan
+          <Button variant="secondary" onClick={() => openEditPlanModal(plan)} style={{ padding: '0.4rem 0.6rem', fontSize: '0.8rem' }} icon="fa-solid fa-pen-to-square">
+            Editar
           </Button>
-          <Button variant="success" onClick={() => openFeedingModal(horse)} disabled={!horse.plan} style={{ padding: '0.4rem 0.6rem' }} icon="fa-solid fa-wheat-awn">
+          <Button variant="success" onClick={() => openFeedingModal(plan)} style={{ padding: '0.4rem 0.6rem', fontSize: '0.8rem' }} icon="fa-solid fa-wheat-awn">
             Racionar
+          </Button>
+          <Button variant="danger" onClick={() => handleDeletePlan(plan.id)} style={{ padding: '0.4rem 0.6rem', fontSize: '0.8rem' }}>
+            <i className="fa-solid fa-trash-can"></i>
           </Button>
         </div>
       </td>
@@ -181,7 +202,7 @@ export const Alimentacion = () => {
     </tr>
   );
 
-  if (loading && horses.length === 0) {
+  if (loading && plans.length === 0) {
     return (
       <div style={{ display: 'flex', justifySelf: 'center', alignSelf: 'center', padding: '5rem' }}>
         <i className="fa-solid fa-circle-notch fa-spin fa-3x" style={{ color: 'var(--accent-gold)' }}></i>
@@ -220,9 +241,12 @@ export const Alimentacion = () => {
             <p>Planifica la dieta de los caballos y registra la ración diaria debitándola del inventario.</p>
           </div>
         </div>
+        <Button onClick={openAddPlanModal} icon="fa-solid fa-plus">
+          Agregar Dieta
+        </Button>
       </div>
 
-      {/* Table: Horses Diet Plans */}
+      {/* Table: Diet Plans */}
       <div className="card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         <div className="card-header">
           <h3>Dieta y Planes por Equino</h3>
@@ -230,9 +254,9 @@ export const Alimentacion = () => {
         </div>
         <Table
           headers={['Caballo', 'Plan Nutricional', 'Insumo Vinculado', 'Acciones']}
-          data={horsePagination.paginatedItems}
-          renderRow={renderHorseRow}
-          pagination={horsePagination}
+          data={plansPagination.paginatedItems}
+          renderRow={renderPlanRow}
+          pagination={plansPagination}
         />
       </div>
 
@@ -250,9 +274,27 @@ export const Alimentacion = () => {
         />
       </div>
 
-      {/* Edit nutrition plan modal */}
-      <Modal isOpen={isPlanModalOpen} onClose={() => setIsPlanModalOpen(false)} title={`Configurar Plan: ${selectedHorse?.nombre}`}>
+      {/* Create / Edit Plan Modal */}
+      <Modal isOpen={isPlanModalOpen} onClose={() => setIsPlanModalOpen(false)} title={isEditingPlan ? 'Editar Plan de Alimentación' : 'Agregar Nueva Dieta'}>
         <form onSubmit={handleSavePlan} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          {!isEditingPlan && (
+            <div className="form-group">
+              <label className="form-label">Caballo</label>
+              <select
+                className="form-control"
+                value={planForm.caballoId}
+                onChange={(e) => setPlanForm(prev => ({ ...prev, caballoId: e.target.value }))}
+                style={{ backgroundColor: 'var(--bg-primary)', color: 'white' }}
+              >
+                <option value="">Seleccionar caballo...</option>
+                {horses.map(h => (
+                  <option key={h.id} value={h.id}>{h.nombre} ({h.identificador})</option>
+                ))}
+              </select>
+              {planErrors.caballoId && <div className="form-feedback">{planErrors.caballoId}</div>}
+            </div>
+          )}
+
           <div className="form-group">
             <label className="form-label">Descripción del Alimento / Dieta</label>
             <input
@@ -295,7 +337,7 @@ export const Alimentacion = () => {
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem' }}>
             <Button variant="secondary" onClick={() => setIsPlanModalOpen(false)}>Cancelar</Button>
-            <Button type="submit">Guardar Dieta</Button>
+            <Button type="submit">{isEditingPlan ? 'Guardar Cambios' : 'Agregar Dieta'}</Button>
           </div>
         </form>
       </Modal>

@@ -279,22 +279,58 @@ export const mockDb = {
 
   // Feeding & Supplies Plan
   alimentacion: {
+    getAllPlanes: () => {
+      const db = getDB();
+      return db.planesAlimentacion.map(plan => {
+        const horse = db.caballos.find(c => c.id === plan.caballoId);
+        const insumo = plan.insumoId ? db.insumos.find(i => i.id === Number(plan.insumoId)) : null;
+        return { ...plan, caballoNombre: horse ? horse.nombre : 'Desconocido', insumoNombre: insumo ? insumo.nombre : null };
+      });
+    },
     getPlanByCaballo: (caballoId) => {
-      return getDB().planesAlimentacion.find(p => p.caballoId === Number(caballoId));
+      const db = getDB();
+      const plans = db.planesAlimentacion.filter(p => p.caballoId === Number(caballoId));
+      return plans.map(plan => {
+        const insumo = plan.insumoId ? db.insumos.find(i => i.id === Number(plan.insumoId)) : null;
+        const horse = db.caballos.find(c => c.id === plan.caballoId);
+        return { ...plan, caballoNombre: horse ? horse.nombre : 'Desconocido', insumoNombre: insumo ? insumo.nombre : null };
+      });
     },
     savePlan: (caballoId, planData) => {
       const db = getDB();
-      const idx = db.planesAlimentacion.findIndex(p => p.caballoId === Number(caballoId));
-      if (idx !== -1) {
-        db.planesAlimentacion[idx] = { ...db.planesAlimentacion[idx], ...planData };
-        saveDB(db);
-        return db.planesAlimentacion[idx];
-      } else {
-        const newPlan = { ...planData, id: Date.now(), caballoId: Number(caballoId) };
-        db.planesAlimentacion.push(newPlan);
-        saveDB(db);
-        return newPlan;
-      }
+      const horse = db.caballos.find(c => c.id === Number(caballoId));
+      const insumo = planData.insumoId ? db.insumos.find(i => i.id === Number(planData.insumoId)) : null;
+      const newPlan = {
+        ...planData,
+        id: Date.now(),
+        caballoId: Number(caballoId),
+        caballoNombre: horse ? horse.nombre : 'Desconocido',
+        insumoNombre: insumo ? insumo.nombre : null
+      };
+      db.planesAlimentacion.push(newPlan);
+      saveDB(db);
+      return newPlan;
+    },
+    updatePlan: (planId, planData) => {
+      const db = getDB();
+      const idx = db.planesAlimentacion.findIndex(p => p.id === Number(planId));
+      if (idx === -1) throw new Error("Plan no encontrado.");
+      const insumo = planData.insumoId ? db.insumos.find(i => i.id === Number(planData.insumoId)) : null;
+      const horse = db.caballos.find(c => c.id === db.planesAlimentacion[idx].caballoId);
+      db.planesAlimentacion[idx] = {
+        ...db.planesAlimentacion[idx],
+        ...planData,
+        caballoNombre: horse ? horse.nombre : 'Desconocido',
+        insumoNombre: insumo ? insumo.nombre : null
+      };
+      saveDB(db);
+      return db.planesAlimentacion[idx];
+    },
+    deletePlan: (planId) => {
+      const db = getDB();
+      db.planesAlimentacion = db.planesAlimentacion.filter(p => p.id !== Number(planId));
+      saveDB(db);
+      return true;
     },
     logSuministro: (planId, supplyData) => {
       const db = getDB();

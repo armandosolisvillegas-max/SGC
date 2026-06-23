@@ -28,6 +28,8 @@ public class ReservaServiceImpl implements ReservaService {
         dto.setHoraInicio(e.getHoraInicio()); dto.setHoraFin(e.getHoraFin());
         dto.setEstado(e.getEstado()); dto.setCupoMaximo(e.getCupoMaximo()); dto.setCupoActual(e.getCupoActual());
         dto.setCaballoId(e.getCaballo().getId()); dto.setClienteId(e.getCliente().getId());
+        dto.setCaballoNombre(e.getCaballo() != null ? e.getCaballo().getNombre() : null);
+        dto.setClienteNombre(e.getCliente() != null ? e.getCliente().getNombre() : null);
         return dto;
     }
 
