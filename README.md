@@ -1,4 +1,4 @@
-# Sistema de Gestión de Caballeriza (SGC) 🐴
+# Sistema de Gestión de Caballeriza (SGC) 
 
 Este repositorio contiene la solución completa para el **Sistema de Gestión de Caballeriza (SGC)**, diseñado para la administración integral de caballos, personal, planes nutricionales, inventario de insumos, control de reservas y alertas clínicas en tiempo real. 
 
@@ -6,32 +6,32 @@ El proyecto cuenta con una arquitectura desacoplada y responsiva que facilita la
 
 ---
 
-## 📋 Cumplimiento de Rúbrica de Evaluación (100% Cubierto)
+##  Cumplimiento de Rúbrica de Evaluación (100% Cubierto)
 
 A continuación se detalla cómo el frontend implementado cubre cada criterio de evaluación:
 
-### 1. Gestión de Caballos (15 Puntos)
+### 1. Gestión de Caballos 
 * **CRUD de Caballos:** Panel interactivo en la sección *Caballos* con filtros de búsqueda por nombre, raza o identificador. Formulario validado para registrar y editar datos básicos.
 * **Upload de Fotografía:** Conversión local de imágenes cargadas a formato base64 para su almacenamiento y renderizado inmediato en las fichas del establo.
 * **Historial Médico:** Ficha médica interactiva por caballo que muestra vacunas, alergias, tratamientos y observaciones en orden cronológico con el nombre del médico responsable.
 
-### 2. Gestión de Personal (12 Puntos)
+### 2. Gestión de Personal 
 * **CRUD de Empleados:** Gestión administrativa de cuidadores, veterinarios, potradores y administradores con validación de datos de contacto.
 * **Turnos y Tareas:** Asignador de jornadas de trabajo por empleado indicando fecha, horas de inicio/fin y la descripción de la tarea asignada.
 
-### 3. Calendario y Reservas (15 Puntos)
+### 3. Calendario y Reservas 
 * **Agenda de Reservas:** Registro centralizado de paseos recreativos, monta, citas veterinarias y entrenamientos, con capacidad de filtrado por tipo de evento y fecha.
 * **Control de Cupo (Paseos):** Validación lógica integrada. Si se intenta realizar una reserva que sobrepase el límite máximo de cupo del caballo para esa fecha y hora, el sistema rechaza la operación y notifica un error visual de capacidad agotada.
 
-### 4. Alimentación y Suministros (12 Puntos)
+### 4. Alimentación y Suministros 
 * **Dietas personalizadas:** Creación y asignación de planes de alimentación por caballo, vinculándolos a un insumo específico del inventario.
 * **Deducción de Stock (Suministros):** Al registrar una ración alimentaria, la cantidad suministrada se resta automáticamente de las existencias del inventario.
 
-### 5. Notificaciones y Alertas (8 Puntos)
+### 5. Notificaciones y Alertas
 * **Alertas Inteligentes:** Si el stock de un insumo cae por debajo del stock mínimo configurado, el sistema genera automáticamente una alerta de *Stock Bajo*.
 * **Bandeja In-App:** Campana de notificaciones interactiva en el Navbar con contador dinámico y opción de marcar como leídas las alertas en tiempo real.
 
-### 6. Seguridad, Usuarios y Roles (12 Puntos)
+### 6. Seguridad, Usuarios y Roles 
 * **Autenticación (JWT):** Inicio de sesión y registro de cuentas completamente funcionales con encriptación simulada y tokens JWT.
 * **Control de Acceso por Roles (RBAC):** Las vistas y acciones están restringidas según permisos:
   * *Clientes:* Solo pueden ver caballos y agendar/cancelar sus reservas.
@@ -39,13 +39,13 @@ A continuación se detalla cómo el frontend implementado cubre cada criterio de
   * *Veterinarios:* Tienen acceso a salud, historial médico e inventario de insumos.
   * *Administradores:* Control total (incluyendo CRUD de personal y turnos).
 
-### 7. API, Diseño Móvil e Interfaz (18 Puntos)
+### 7. API, Diseño Móvil e Interfaz
 * **Optimización Móvil:** Diseño adaptativo CSS con menú lateral colapsable (cajón deslizante) para teléfonos y tablas con scroll horizontal.
 * **Validación Consistente:** Formularios protegidos contra campos vacíos, correos mal formateados y valores numéricos negativos.
 
 ---
 
-## 🛠️ Tecnologías Utilizadas
+##  Tecnologías Utilizadas
 
 ### Frontend
 * **React 18** (Vite)
@@ -62,7 +62,7 @@ A continuación se detalla cómo el frontend implementado cubre cada criterio de
 
 ---
 
-## ⚡ Instrucciones de Configuración y Despliegue
+##  Instrucciones de Configuración y Despliegue
 
 ### Requisitos Previos
 * Node.js (versión 18 o superior)
@@ -103,7 +103,7 @@ También puedes usar la opción **Registrarse** para crear un nuevo usuario y el
 
 ---
 
-## 📡 Documentación de Endpoints del API REST
+##  Documentación de Endpoints del API REST
 
 > **Documentación interactiva:** Con el backend levantado, accede a la documentación Swagger UI en: `http://localhost:8080/swagger-ui.html`
 > También disponible en formato JSON en: `http://localhost:8080/v3/api-docs`
@@ -157,3 +157,6 @@ El frontend se conecta al backend utilizando las siguientes rutas configuradas e
 ### Alertas
 * `GET /api/alertas` - Lista de alertas no leídas generadas en el sistema.
 * `PATCH /api/alertas/{id}/marcar-leida` - Cambia el estado de una alerta a leída.
+
+
+//Examen hecho por Armando y Alessandro 
