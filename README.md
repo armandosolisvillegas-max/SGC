@@ -105,6 +105,9 @@ También puedes usar la opción **Registrarse** para crear un nuevo usuario y el
 
 ## 📡 Documentación de Endpoints del API REST
 
+> **Documentación interactiva:** Con el backend levantado, accede a la documentación Swagger UI en: `http://localhost:8080/swagger-ui.html`
+> También disponible en formato JSON en: `http://localhost:8080/v3/api-docs`
+
 El frontend se conecta al backend utilizando las siguientes rutas configuradas en [axiosClient.js](file:///c:/Users/alegr/OneDrive/Desktop/Progra%204/Examen%202%20Progra/SGC-1/caballeriza-frontend/src/api/axiosClient.js):
 
 ### Autenticación
@@ -114,6 +117,7 @@ El frontend se conecta al backend utilizando las siguientes rutas configuradas e
 ### Caballos e Historial Clínico
 * `GET /api/caballos` - Lista de caballos registrados (con paginación).
 * `POST /api/caballos` - Registra un caballo.
+* `GET /api/caballos/{id}` - Obtiene la información detallada de un caballo.
 * `PUT /api/caballos/{id}` - Modifica la información del caballo.
 * `DELETE /api/caballos/{id}` - Elimina al caballo de forma permanente (Solo Admin).
 * `GET /api/caballos/{id}/historial-medico` - Obtiene la lista de reportes médicos del caballo.
@@ -130,16 +134,26 @@ El frontend se conecta al backend utilizando las siguientes rutas configuradas e
 ### Reservas y Calendario
 * `GET /api/reservas` - Lista de reservas activas filtradas por `tipo` o `fecha`.
 * `POST /api/reservas` - Solicita una reserva (valida el cupo del caballo).
+* `PUT /api/reservas/{id}` - Modifica los datos de una reserva existente.
+* `DELETE /api/reservas/{id}` - Elimina una reserva del sistema.
 * `PATCH /api/reservas/{id}/cancelar` - Cambia el estado de una reserva a `CANCELADA`.
 
-### Dietas e Inventario
-* `GET /api/caballos/{id}/plan-alimentacion` - Obtiene el plan nutricional del caballo.
-* `POST /api/caballos/{id}/plan-alimentacion` - Asigna o edita el plan nutricional de un caballo.
+### Dietas y Planes de Alimentación
+* `GET /api/planes` - Lista todos los planes nutricionales de todos los caballos.
+* `GET /api/caballos/{id}/plan-alimentacion` - Obtiene los planes nutricionales de un caballo.
+* `POST /api/caballos/{id}/plan-alimentacion` - Crea un nuevo plan nutricional para un caballo.
+* `PUT /api/planes/{id}` - Actualiza un plan nutricional existente.
+* `DELETE /api/planes/{id}` - Elimina un plan nutricional.
 * `POST /api/planes/{planId}/suministros` - Registra el suministro de alimento y debita del stock del inventario.
+* `GET /api/planes/suministros` - Historial de todos los suministros registrados.
+
+### Inventario de Insumos
 * `GET /api/insumos` - Lista de alimentos y medicamentos en inventario.
+* `POST /api/insumos` - Registra un nuevo insumo.
 * `PUT /api/insumos/{id}` - Modifica los niveles de stock e insumos.
+* `DELETE /api/insumos/{id}` - Elimina un insumo del inventario.
 * `GET /api/insumos/stock-bajo` - Lista filtrada de artículos por debajo del stock mínimo.
 
 ### Alertas
-* `GET /api/alertas` - Lista de alertas generadas en el sistema.
+* `GET /api/alertas` - Lista de alertas no leídas generadas en el sistema.
 * `PATCH /api/alertas/{id}/marcar-leida` - Cambia el estado de una alerta a leída.
